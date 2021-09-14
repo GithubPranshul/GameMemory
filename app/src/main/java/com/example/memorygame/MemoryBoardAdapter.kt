@@ -7,6 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memorygame.models.BoardSize
 import com.example.memorygame.models.MemoryCard
@@ -54,7 +56,14 @@ class MemoryBoardAdapter(
         fun bind(position: Int) {
             val memoryCard = card[position]
             imageButton.setImageResource( if (card[position].isFaceUp) card[position].identifier else R.drawable.ic_launcher_background)
-          imageButton.setOnClickListener{
+
+            //  if matched then setting the  boolean property of foundMatch method
+
+            imageButton.alpha = if(memoryCard.isMatched) (.4f) else (1.0f)
+           val colorStateList = if(memoryCard.isMatched) ContextCompat.getColorStateList(context,R.color.color_gray) else null
+           ViewCompat.setBackgroundTintList(imageButton,colorStateList)
+
+            imageButton.setOnClickListener{
               Log.i(TAG,"Click on position $position")
               cardClickListener.onCardClicked(position)
           }
