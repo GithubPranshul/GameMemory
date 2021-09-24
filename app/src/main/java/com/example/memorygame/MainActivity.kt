@@ -2,7 +2,10 @@ package com.example.memorygame
 
 import android.animation.ArgbEvaluator
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.ContentValues.TAG
+import android.content.Intent
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -10,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -19,18 +23,29 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memorygame.models.BoardSize
 import com.example.memorygame.models.MemoryGame
-import com.google.android.material.datepicker.MaterialPickerOnPositiveButtonClickListener
+import com.example.memorygame.newmodels.UserImageList
+import com.example.memorygame.utills.EXTRA_BOARD_SIZE
+import com.example.memorygame.utills.EXTRA_GAME_NAME
+import com.github.jinatonic.confetti.CommonConfetti
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.squareup.picasso.Picasso
 
 
 class MainActivity : AppCompatActivity() {
-
+    companion object{
+        private const val CREATE_REQUEST_CODE =248
+    }
 
     private lateinit var clRoot: ConstraintLayout
     private lateinit var rvBoard: RecyclerView
     private lateinit var tvNumMoves: TextView
     private lateinit var tvNumPairs: TextView
 
+    private val db = Firebase.firestore
+    private var gameName: String? = null
+    private var customGameImages: List<String>? =null
     private lateinit var adapter:MemoryBoardAdapter
     private lateinit var memoryGame: MemoryGame
     private var boardSize: BoardSize = BoardSize.EASY
@@ -44,7 +59,7 @@ class MainActivity : AppCompatActivity() {
         tvNumMoves = findViewById(R.id.tvNumMoves)
         tvNumPairs = findViewById(R.id.tvNumPairs)
 
-        setupBorad()
+        setupBoard()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -58,11 +73,11 @@ class MainActivity : AppCompatActivity() {
                 // setup the game again
                 if(memoryGame.getNumMoves()> 0 && !memoryGame.haveWonGame()) {
                     showAlertDialog("Quit your current game?",null,View.OnClickListener {
-                        setupBorad()
+                        setupBoard()
                     })
                 }else {
 
-                setupBorad()
+                setupBoard()
                 }
 
 
@@ -71,8 +86,79 @@ class MainActivity : AppCompatActivity() {
                 showNewSizeDialog()
                 return true
             }
+            R.id.mi_custom -> {
+                showCreationDialog()
+                return true
+            }
+            R.id.mi_download -> {
+                showDownloadDialog()
+                return true
+            }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if(resultCode == CREATE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            val customGameName = data?.getStringExtra(EXTRA_GAME_NAME)
+            if(customGameName == null){
+                Log.e(TAG,"Got null custom game from CreateActivity")
+                return
+            }
+            downloadGame(customGameName)
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
+
+    private fun showDownloadDialog() {
+        val boardDownloadView = LayoutInflater.from(this).inflate(R.layout.dialog_board,null)
+        showAlertDialog("Fetch memory game",boardDownloadView,View.OnClickListener {
+            // Grab the text of the game name that the user wants to download
+            val etDownloadGame = boardDownloadView.findViewById<EditText>(R.id.etDownloadGame)
+            val gameToDownload = etDownloadGame.text.toString().trim()
+            downloadGame(gameToDownload)
+        })
+    }
+
+    private fun downloadGame(customGameName: String) {
+        db.collection("games").document(customGameName).get().addOnSuccessListener { document ->
+            val userImageList = document.toObject(UserImageList::class.java)
+            if(userImageList?.images == null) {
+                Log.e(TAG,"Invalid custom game from Firestore ")
+                Snackbar.make(clRoot,"Sorry, we couldn't find any such game ,$gameName ",Snackbar.LENGTH_LONG).show()
+                return@addOnSuccessListener
+            }
+            val numCards = userImageList.images.size*2
+            boardSize = BoardSize.getByValue(numCards)
+            customGameImages = userImageList.images
+            for(imageUrl in userImageList.images) {
+                Picasso.get().load(imageUrl).fetch()
+            }
+            Snackbar.make(clRoot,"You're now playing '$customGameName'!",Snackbar.LENGTH_LONG).show()
+            gameName = customGameName
+            setupBoard()
+        }.addOnFailureListener { exception ->
+            Log.e(TAG,"Exception when retrieving game",exception)
+        }
+    }
+
+    private fun showCreationDialog() {
+        val boardSizeView = LayoutInflater.from(this).inflate(R.layout.dialog_board_size,null)
+        val radioGroupSize = boardSizeView.findViewById<RadioGroup>(R.id.radioGroup)
+        showAlertDialog("Create your own memory board",boardSizeView,View.OnClickListener {
+            // Set a new value for board size
+            val desireBoardSize = when (radioGroupSize.checkedRadioButtonId) {
+                R.id.rvEasy -> BoardSize.EASY
+                R.id.rvMedium -> BoardSize.MEDIUM
+                R.id.rvHard -> BoardSize.HARD
+                else-> BoardSize.HARD
+            }
+            // Navigate to a new activity
+            val intent = Intent(this,CreateActivity::class.java)
+            intent.putExtra(EXTRA_BOARD_SIZE,desireBoardSize)
+            startActivityForResult(intent,CREATE_REQUEST_CODE)
+        })
     }
 
     private fun showNewSizeDialog() {
@@ -93,7 +179,9 @@ class MainActivity : AppCompatActivity() {
                 R.id.rvHard -> BoardSize.HARD
                 else-> BoardSize.HARD
             }
-            setupBorad()
+            gameName = null
+            customGameImages = null
+            setupBoard()
         })
     }
 
@@ -107,7 +195,8 @@ class MainActivity : AppCompatActivity() {
             }.show()
     }
 
-    private fun setupBorad() {
+    private fun setupBoard() {
+        supportActionBar?.title = gameName?: getString(R.string.app_name)
         when (boardSize) {
             BoardSize.EASY -> {
                 tvNumMoves.text = "Easy: 4 x 2"
@@ -124,7 +213,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         tvNumPairs.setTextColor(ContextCompat.getColor(this,R.color.color_progress_none))
-        memoryGame = MemoryGame(boardSize)
+        memoryGame = MemoryGame(boardSize,customGameImages)
         adapter = MemoryBoardAdapter(this,boardSize,memoryGame.cards,object : MemoryBoardAdapter.CardClickListener{
             override fun onCardClicked(position: Int) {
                 updateGameWithFlip(position)
@@ -162,6 +251,7 @@ class MainActivity : AppCompatActivity() {
              tvNumPairs.text = "Pairs: ${memoryGame.numPairFound} / ${boardSize.getNumPairs()}"
              if(memoryGame.haveWonGame()) {
                  Snackbar.make(clRoot,"You won! Congratulations.",Snackbar.LENGTH_LONG).show()
+                 CommonConfetti.rainingConfetti(clRoot, intArrayOf(Color.YELLOW,Color.GREEN,Color.MAGENTA)).oneShot()
              }
          }
         tvNumMoves.text = "Moves: ${memoryGame.getNumMoves()}"

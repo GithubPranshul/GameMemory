@@ -1,7 +1,8 @@
 package com.example.memorygame.utills
 
 import com.example.memorygame.R
-
+const val EXTRA_GAME_SIZE ="EXTRA_GAME_SIZE"
+const val EXTRA_BOARD_SIZE ="EXTRA_BOARD_SIZE"
 val DEFAULT_ICONS = listOf(
     R.drawable.ic_face,
     R.drawable.ic_flight,

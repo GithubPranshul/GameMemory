@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">MemoryGame</string>
+    <string name="refresh">refresh</string>
+    <string name="choose_new_size">Choose new size</string>
+    <string name="create_custom_game">Create custom game</string>
+    <string name="save">Save</string>
+    <string name="game_name_example_panda_fun">Game name(example: \'panda_fun\')</string>
+    <string name="enter_game_name">Enter game name</string>
 </resources>
