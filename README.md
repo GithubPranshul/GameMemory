@@ -4,5 +4,5 @@ This is a game which was the part of the tutorial from rahul pandey (https://you
 
 
 
- Image Credit - The Hunter × Hunter manga series, created by Yoshihiro Togashi
+ Image Credit - The Hunter × Hunter manga series, created by Yoshihiro Togashi(https://en.wikipedia.org/wiki/List_of_Hunter_%C3%97_Hunter_characters#Killua_Zoldyck)
 
