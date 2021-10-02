@@ -3,7 +3,7 @@ This game was the part of the tutorial from rahul pandey (https://youtu.be/ivZN2
 
 In this game user have to find same pair of images. 
 
-User may play defualt images or make their own custom game to play.Imgaes will be uploaded to firebase so user can download their game any time.
+User may play default images or make their own custom game to play.Imgaes will be uploaded to firebase so user can download their game any time.
 
 
 Image Credit - The Hunter × Hunter manga series, created by Yoshihiro Togashi(https://en.wikipedia.org/wiki/List_of_Hunter_%C3%97_Hunter_characters#Killua_Zoldyck)
