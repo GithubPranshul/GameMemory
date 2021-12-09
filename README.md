@@ -8,6 +8,13 @@ User may play default images or make their own custom game to play.Imgaes will b
 
 Image Credit - The Hunter × Hunter manga series, created by Yoshihiro Togashi(https://en.wikipedia.org/wiki/List_of_Hunter_%C3%97_Hunter_characters#Killua_Zoldyck)
 
+
+
+# Demo Video
+
+https://user-images.githubusercontent.com/76085602/134796765-5b0f065c-0d03-4b13-8939-81612fa63f35.mp4
+
+# Demo Images
 ![image](https://user-images.githubusercontent.com/76085602/134795690-38a78b93-7048-46bb-b540-da6fdf940227.png)
 
 ![image1](https://user-images.githubusercontent.com/76085602/134796384-0901e843-fed9-494c-9360-4953c4f92703.jpeg)
@@ -15,7 +22,4 @@ Image Credit - The Hunter × Hunter manga series, created by Yoshihiro Togashi(h
 
 
 
-
-
-https://user-images.githubusercontent.com/76085602/134796765-5b0f065c-0d03-4b13-8939-81612fa63f35.mp4
 
